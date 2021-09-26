@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  backend:
+    build: .
+    command: sh -c "
+      sleep 4 &&
+      ./bin/mimoto"
+    environment:
+      - PORT=8080
+      - TTL=10
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=mimoto
+      - POSTGRES_PASS=password
+      - POSTGRES_DB=mimoto
+    ports:
+      - "8080:8080"
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: mimoto
+      POSTGRES_DB: mimoto
+    ports:
+      - "5432:5432"
