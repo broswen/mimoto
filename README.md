@@ -9,7 +9,7 @@ Uses JWTs and refresh tokens.
 - [ ] structure project
 - [ ] setup chi-router server and routes
 - [ ] setup prisma schema
-- [ ] setup docker-compose for postgres
+- [x] setup docker-compose for postgres
 - [ ] implement signup endpoint
 - [ ] implement confirm account endpoint
 - [ ] implement login endpoint
