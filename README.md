@@ -1,4 +1,8 @@
+# Mimoto
 
+User authentication backend. Allows for registration and confirmation via email, and password resets via email.
+
+Uses JWTs and refresh tokens.
 
 
 ### TODO
