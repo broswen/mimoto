@@ -6,13 +6,18 @@ Uses JWTs and refresh tokens.
 
 
 ### TODO
-- [ ] structure project
-- [ ] setup chi-router server and routes
-- [ ] setup prisma schema
+- [x] structure project
+- [x] setup chi-router server and routes
+- [x] setup gorm
 - [x] setup docker-compose for postgres
-- [ ] implement signup endpoint
-- [ ] implement confirm account endpoint
-- [ ] implement login endpoint
-- [ ] implement refresh endpoint
-- [ ] implement logout endpoint
-- [ ] implement reset endpoint
+- [x] implement signup endpoint
+- [x] implement confirm account endpoint
+- [x] implement login endpoint
+- [x] implement refresh endpoint
+- [x] implement logout endpoint
+- [x] implement reset endpoint
+
+
+- [ ] catch typed errors and use appropriate messages
+- [ ] setup logging
+- [ ] cleanup common request/response formats
