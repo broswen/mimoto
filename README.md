@@ -18,6 +18,8 @@ Uses JWTs and refresh tokens.
 - [x] implement reset endpoint
 
 
-- [ ] catch typed errors and use appropriate messages
-- [ ] setup logging
+- [ ] separate auth and user service concerns
+- [ ] catch typed errors, create custom errors, and use appropriate messages
 - [ ] cleanup common request/response formats
+- [ ] rearchitect for unit testing
+- [ ] setup logging

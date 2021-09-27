@@ -9,18 +9,25 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-type Service struct {
+type EmailService interface {
+	Send(name, email, subject, text, html string) error
+	SendConfirmation(name, email, code string) error
+	SendConfirmationSuccess(name, email string) error
+	SendReset(name, email, code string) error
+}
+
+type SendGridService struct {
 	sgClient *sendgrid.Client
 }
 
-func New() (Service, error) {
+func NewSendGrid() (SendGridService, error) {
 	sgClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	return Service{
+	return SendGridService{
 		sgClient: sgClient,
 	}, nil
 }
 
-func (s Service) Send(name, email, subject, text, html string) error {
+func (s SendGridService) Send(name, email, subject, text, html string) error {
 	from := mail.NewEmail("noreply", os.Getenv("NOREPLY_EMAIL"))
 	to := mail.NewEmail(name, email)
 	message := mail.NewSingleEmail(from, subject, to, text, html)
@@ -32,19 +39,19 @@ func (s Service) Send(name, email, subject, text, html string) error {
 	return nil
 }
 
-func (s Service) SendConfirmation(name, email, code string) error {
+func (s SendGridService) SendConfirmation(name, email, code string) error {
 	text := fmt.Sprintf("Please click this link to confirm your account.\n%s/confirm?email=%s&code=%s", os.Getenv("HOSTNAME"), email, code)
 
 	return s.Send(name, email, "Email Confirmation", text, text)
 }
 
-func (s Service) SendConfirmationSuccess(name, email string) error {
+func (s SendGridService) SendConfirmationSuccess(name, email string) error {
 	text := fmt.Sprintf("Your email was successfully confirmed!")
 
 	return s.Send(name, email, "Email Confirmation", text, text)
 }
 
-func (s Service) SendReset(name, email, code string) error {
+func (s SendGridService) SendReset(name, email, code string) error {
 	text := fmt.Sprintf("Please click this link to reset your account password.\n%s/reset?email=%s&code=%s", os.Getenv("HOSTNAME"), email, code)
 
 	return s.Send(name, email, "Reset Password", text, text)

@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -12,33 +11,29 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type Service struct {
-	repo         repository.Repository
-	emailService email.Service
+	userRepository repository.UserRepository
+	emailService   email.EmailService
 }
 
-func New(repo repository.Repository, emailService email.Service) (Service, error) {
+func New(userRepository repository.UserRepository, emailService email.EmailService) (Service, error) {
 	rand.Seed(time.Now().Unix())
 	return Service{
-		repo:         repo,
-		emailService: emailService,
+		userRepository: userRepository,
+		emailService:   emailService,
 	}, nil
 }
 
 func (s Service) Signup(email, name, password string) error {
-	// check if user exists, throw error if exists
-	user := repository.User{Email: email, Name: name}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error == nil {
+	user, err := s.userRepository.FindByEmail(email)
+	if err == nil {
 		return errors.New("user already exists with that email")
 	}
 
-	if !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		return tx.Error
+	if !errors.Is(err, repository.ErrUserNotFound) {
+		return err
 	}
 
 	// hash password
@@ -49,7 +44,10 @@ func (s Service) Signup(email, name, password string) error {
 	user.HashedPassword = string(hashedPassword)
 	code := generateCode()
 	user.ConfirmationCode = code
-	s.repo.DB.Create(&user)
+	err = s.userRepository.Create(&user)
+	if err != nil {
+		return err
+	}
 
 	// send confirmation email
 	err = s.emailService.SendConfirmation(name, email, code)
@@ -66,11 +64,10 @@ func generateCode() string {
 
 func (s Service) Confirm(email, code string) error {
 	// get user from repo, throw error if not exists
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
+	user, err := s.userRepository.FindByEmail(email)
 
-	if tx.Error != nil {
-		return tx.Error
+	if err != nil {
+		return err
 	}
 
 	// check if confirmation code matches, throw error if not exist or not match
@@ -85,10 +82,10 @@ func (s Service) Confirm(email, code string) error {
 	// set confirmed = true
 	user.ConfirmationCode = ""
 	user.Confirmed = true
-	tx = s.repo.DB.Save(&user)
+	err = s.userRepository.Save(&user)
 
-	if tx.Error != nil {
-		return tx.Error
+	if err != nil {
+		return err
 	}
 
 	s.emailService.SendConfirmationSuccess(user.Name, user.Email)
@@ -97,11 +94,9 @@ func (s Service) Confirm(email, code string) error {
 }
 
 func (s Service) Login(email, password string) (string, string, error) {
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error != nil {
-		return "", "", tx.Error
+	user, err := s.userRepository.FindByEmail(email)
+	if err != nil {
+		return "", "", err
 	}
 
 	if user.ConfirmationCode != "" || !user.Confirmed {
@@ -130,8 +125,7 @@ func (s Service) Login(email, password string) (string, string, error) {
 	}
 
 	user.RefreshToken = signedRefreshToken
-	tx = s.repo.DB.Save(&user)
-
+	err = s.userRepository.Save(&user)
 	if err != nil {
 		return "", "", err
 	}
@@ -145,25 +139,15 @@ func (s Service) Login(email, password string) (string, string, error) {
 }
 
 func (s Service) Refresh(email, token string) (string, error) {
-	// TODO check that the token actually matches
-	// validate refresh token, throw error if invalid
-	// find user from sub claim
-	log.Println(email)
-	log.Println(token)
-
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error != nil {
-		return "", tx.Error
+	user, err := s.userRepository.FindByEmail(email)
+	if err != nil {
+		return "", err
 	}
 
 	if token != user.RefreshToken {
 		return "", errors.New("refresh token doesn't match")
 	}
-	// throw error if not exist
-	// check if refresh token matches, throw if not exist or doesn't match
-	// generate new short lived jwt
+
 	tokenClaims := &jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		Issuer:    "mimoto",
@@ -178,53 +162,39 @@ func (s Service) Refresh(email, token string) (string, error) {
 }
 
 func (s Service) Logout(email string) error {
-	// validate token, throw error if invalid
-	// find user from sub claim
-	// throw error if not exist
-	// set refresh token to "" on user in repo
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error != nil {
-		return tx.Error
+	user, err := s.userRepository.FindByEmail(email)
+	if err != nil {
+		return err
 	}
 
 	user.RefreshToken = ""
-	tx = s.repo.DB.Save(&user)
-	if tx.Error != nil {
-		return tx.Error
+	err = s.userRepository.Save(&user)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (s Service) SendReset(email string) error {
-	// get account with email from sub
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error != nil {
-		return tx.Error
+	user, err := s.userRepository.FindByEmail(email)
+	if err != nil {
+		return err
 	}
+
 	code := generateCode()
-	// generate reset code
-	// save code with user in repo
 	user.ResetCode = code
-	tx = s.repo.DB.Save(&user)
-	if tx.Error != nil {
-		return tx.Error
+	err = s.userRepository.Save(&user)
+	if err != nil {
+		return err
 	}
 	return s.emailService.SendReset(user.Name, user.Email, code)
 }
 
 func (s Service) ResetPassword(email, password, code string) error {
-	// get account with email from sub
-	// throw error if not exist
-	user := repository.User{Email: email}
-	tx := s.repo.DB.First(&user)
-
-	if tx.Error != nil {
-		return tx.Error
+	user, err := s.userRepository.FindByEmail(email)
+	if err != nil {
+		return err
 	}
 
 	if user.ResetCode == "" {
@@ -243,9 +213,9 @@ func (s Service) ResetPassword(email, password, code string) error {
 	// update user in repo with new password and set code to ""
 	user.HashedPassword = string(hashedPassword)
 	user.ResetCode = ""
-	tx = s.repo.DB.Save(&user)
-	if tx.Error != nil {
-		return tx.Error
+	err = s.userRepository.Save(&user)
+	if err != nil {
+		return err
 	}
 
 	return nil

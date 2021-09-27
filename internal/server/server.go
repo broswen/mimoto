@@ -18,7 +18,7 @@ import (
 
 type Server struct {
 	userService  user.Service
-	emailService email.Service
+	emailService email.EmailService
 	router       chi.Router
 	logger       zerolog.Logger
 	tokenAuth    *jwtauth.JWTAuth
@@ -26,17 +26,17 @@ type Server struct {
 
 func New() (Server, error) {
 
-	repo, err := repository.New()
+	userRepository, err := repository.NewPostgres()
 	if err != nil {
 		return Server{}, fmt.Errorf("init Repository: %w", err)
 	}
 
-	emailService, err := email.New()
+	emailService, err := email.NewSendGrid()
 	if err != nil {
 		return Server{}, fmt.Errorf("init EmailService: %w", err)
 	}
 
-	userService, err := user.New(repo, emailService)
+	userService, err := user.New(userRepository, emailService)
 	if err != nil {
 		return Server{}, fmt.Errorf("init UserService: %w", err)
 	}
