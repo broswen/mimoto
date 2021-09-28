@@ -4,6 +4,46 @@ User authentication backend. Allows for registration and confirmation via email,
 
 Uses JWTs and refresh tokens.
 
+`POST /signup`
+```json
+{
+  "email": "test@test.com",
+  "name": "test",
+  "password": "secret"
+}
+```
+
+`POST /confirm?email=test@test.com&code=jd73hjd-sd73h3-kj56d-sdf898`
+
+`POST /login`
+```json
+{
+  "email": "test@test.com",
+  "password": "secret"
+}
+```
+
+`POST /refresh`
+
+`POST /sendreset`
+```json
+{
+  "email": "test@test.com"
+}
+```
+
+`POST /reset?email=test@test.com&code=2h48fj-f93jk3d-sdf987-lk6j7`
+```json
+{
+  "password": "secret"
+}
+```
+
+`POST /logout`
+
+
+
+
 
 ### TODO
 - [x] structure project
