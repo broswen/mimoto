@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimoto-postgres
+spec:
+  selector:
+    app: mimoto-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimoto-postgres
+spec:
+  selector:
+    matchLabels:
+      app: mimoto-postgres
+  template:
+    metadata:
+      labels:
+        app: mimoto-postgres
+    spec:
+      volumes:
+        - name: mimoto-postgres-pvc
+          persistentVolumeClaim:
+            claimName: mimoto-postgres-pvc
+      containers:
+        - name: mimoto-postgres
+          image: postgres
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.user
+                  name: mimoto
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.pass
+                  name: mimoto
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.db
+                  name: mimoto
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: mimoto-postgres-pvc
+              mountPath: /var/lib/postgresql/data
+              subPath: mimoto/postgres
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mimoto-postgres-pvc
+spec:
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mimoto-postgres-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: local-storage
+  local:
+    path: /mnt/storage
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - silverstone

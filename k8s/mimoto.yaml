@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimoto
+data:
+  port: "8080"
+  postgres.host: mimoto-postgres
+  postgres.port: "5432"
+  postgres.user: mimoto
+  postgres.db: mimoto
+  noreply_email: noreply@broswen.com
+  hostname: broswen.com
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimoto
+spec:
+  selector:
+    app: mimoto
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimoto
+spec:
+  selector:
+    matchLabels:
+      app: mimoto
+  template:
+    metadata:
+      labels:
+        app: mimoto
+    spec:
+      containers:
+        - name: mimoto
+          image: broswen/mimoto:1.0.0
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: port
+                  name: mimoto
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.host
+                  name: mimoto
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.port
+                  name: mimoto
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.user
+                  name: mimoto
+            - name: POSTGRES_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.pass
+                  name: mimoto
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  key: postgres.db
+                  name: mimoto
+            - name: NOREPLY_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  key: noreply_email
+                  name: mimoto
+            - name: HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: hostname
+                  name: mimoto
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: secret
+                  name: mimoto
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: sendgrid_api_key
+                  name: mimoto
+          ports:
+            - containerPort: 8080
+        - name: redis
+          image: redis
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 6379
+      imagePullSecrets:
+        - name: regcred
