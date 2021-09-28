@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type User struct {
@@ -28,6 +29,38 @@ type UserRepository interface {
 	FindByEmail(email string) (User, error)
 	Create(*User) error
 	Save(*User) error
+}
+
+type MapRepository struct {
+	M map[string]User
+}
+
+func NewMap() (MapRepository, error) {
+	return MapRepository{
+		M: make(map[string]User),
+	}, nil
+}
+
+func (mr MapRepository) FindByEmail(email string) (User, error) {
+	user, ok := mr.M[email]
+	if !ok {
+		return User{}, ErrUserNotFound
+	}
+	return user, nil
+}
+
+func (mr MapRepository) Create(user *User) error {
+	_, ok := mr.M[user.Email]
+	if ok {
+		return ErrUserAlreadyExists
+	}
+	mr.M[user.Email] = *user
+	return nil
+}
+
+func (mr MapRepository) Save(user *User) error {
+	mr.M[user.Email] = *user
+	return nil
 }
 
 type PostgresRepository struct {

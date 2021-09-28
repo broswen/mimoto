@@ -13,6 +13,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserService interface {
+	Signup(email, name, password string) error
+	Confirm(email, code string) error
+	Login(email, password string) (string, string, error)
+	Refresh(email, token string) (string, error)
+	Logout(email string) error
+	SendReset(email string) error
+	ResetPassword(email, password, code string) error
+}
+
 type Service struct {
 	userRepository repository.UserRepository
 	emailService   email.EmailService
@@ -34,6 +44,11 @@ func (s Service) Signup(email, name, password string) error {
 
 	if !errors.Is(err, repository.ErrUserNotFound) {
 		return err
+	}
+
+	user = repository.User{
+		Email: email,
+		Name:  name,
 	}
 
 	// hash password

@@ -16,6 +16,38 @@ type EmailService interface {
 	SendReset(name, email, code string) error
 }
 
+type ConsoleService struct {
+}
+
+func NewConsole() (ConsoleService, error) {
+	return ConsoleService{}, nil
+}
+
+func (cs ConsoleService) Send(name, email, subject, text, html string) error {
+	from := fmt.Sprintf("noreply <%s>", os.Getenv("NOREPLY_EMAIL"))
+	to := fmt.Sprintf("%s <%s>", name, email)
+	fmt.Println(from, to, text)
+	return nil
+}
+
+func (cs ConsoleService) SendConfirmation(name, email, code string) error {
+	text := fmt.Sprintf("Please click this link to confirm your account.\n%s/confirm?email=%s&code=%s", os.Getenv("HOSTNAME"), email, code)
+
+	return cs.Send(name, email, "Email Confirmation", text, text)
+}
+
+func (cs ConsoleService) SendConfirmationSuccess(name, email string) error {
+	text := fmt.Sprintf("Your email was successfully confirmed!")
+
+	return cs.Send(name, email, "Email Confirmation", text, text)
+}
+
+func (cs ConsoleService) SendReset(name, email, code string) error {
+	text := fmt.Sprintf("Please click this link to reset your account password.\n%s/reset?email=%s&code=%s", os.Getenv("HOSTNAME"), email, code)
+
+	return cs.Send(name, email, "Reset Password", text, text)
+}
+
 type SendGridService struct {
 	sgClient *sendgrid.Client
 }

@@ -31,7 +31,7 @@ func (sr *SignupRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func SignupHandler(userService user.Service) http.HandlerFunc {
+func SignupHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := SignupRequest{}
 		if err := render.Bind(r, &data); err != nil {
@@ -49,7 +49,7 @@ func SignupHandler(userService user.Service) http.HandlerFunc {
 	}
 }
 
-func ConfirmHandler(userService user.Service) http.HandlerFunc {
+func ConfirmHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		email := r.URL.Query().Get("email")
@@ -90,7 +90,7 @@ func (sr *LoginResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func LoginHandler(userService user.Service) http.HandlerFunc {
+func LoginHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := LoginRequest{}
 		if err := render.Bind(r, &data); err != nil {
@@ -119,7 +119,7 @@ func (sr *RefreshResponse) Render(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
-func RefreshHandler(userService user.Service) http.HandlerFunc {
+func RefreshHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// refreshToken := r.Context().Value("token").(*jwt.Token)
 		claims := r.Context().Value("claims").(jwt.StandardClaims)
@@ -137,7 +137,7 @@ func RefreshHandler(userService user.Service) http.HandlerFunc {
 	}
 }
 
-func LogoutHandler(userService user.Service) http.HandlerFunc {
+func LogoutHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		claims := r.Context().Value("claims").(jwt.StandardClaims)
 
@@ -162,7 +162,7 @@ func (er *EmailRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func SendResetHandler(userService user.Service) http.HandlerFunc {
+func SendResetHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := EmailRequest{}
 		if err := render.Bind(r, &data); err != nil {
@@ -191,7 +191,7 @@ func (rpr *ResetPasswordRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func ResetHandler(userService user.Service) http.HandlerFunc {
+func ResetHandler(userService user.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := ResetPasswordRequest{}
 		if err := render.Bind(r, &data); err != nil {

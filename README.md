@@ -17,9 +17,7 @@ Uses JWTs and refresh tokens.
 - [x] implement logout endpoint
 - [x] implement reset endpoint
 
-
-- [ ] separate auth and user service concerns
-- [ ] catch typed errors, create custom errors, and use appropriate messages
-- [ ] cleanup common request/response formats
-- [ ] rearchitect for unit testing
+- [ ] catch typed errors, create custom errors, and use approeriate messages
+- [x] cleanup common request/response formats
+- [x] rearchitect for unit testing
 - [ ] setup logging

@@ -17,7 +17,7 @@ import (
 )
 
 type Server struct {
-	userService  user.Service
+	userService  user.UserService
 	emailService email.EmailService
 	router       chi.Router
 	logger       zerolog.Logger
