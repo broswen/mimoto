@@ -1,19 +1,23 @@
 version: "3.9"
 services:
-  # backend:
-  #   build: .
-  #   command: sh -c "
-  #     sleep 4 &&
-  #     ./bin/mimoto"
-  #   environment:
-  #     - PORT=8080
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5432
-  #     - POSTGRES_USER=mimoto
-  #     - POSTGRES_PASS=password
-  #     - POSTGRES_DB=mimoto
-  #   ports:
-  #     - "8080:8080"
+  backend:
+    build: .
+    command: sh -c "
+      sleep 4 &&
+      ./bin/mimoto"
+    environment:
+      - PORT=8080
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=mimoto
+      - POSTGRES_PASS=password
+      - POSTGRES_DB=mimoto
+      - NOREPLY_EMAIL=
+      - HOSTNAME=
+      - SENDGRID_API_KEY=
+      - SECRET=
+    ports:
+      - "8080:8080"
   postgres:
     image: postgres
     environment:

@@ -9,7 +9,6 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/joho/godotenv v1.4.0
 	github.com/rs/zerolog v1.25.0
 	github.com/sendgrid/sendgrid-go v3.10.1+incompatible
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
